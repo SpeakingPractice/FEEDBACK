@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import SignaturePad from './components/SignaturePad';
 import { ScrapbookMessage } from './types';
 import { Heart, BookOpen, PenTool, Sparkles, ChevronDown, ChevronUp, Trash2, Wand2 } from 'lucide-react';
 
@@ -11,7 +10,7 @@ const App: React.FC = () => {
     className: '',
     reflection: '',
     improvement: '',
-    signature: ''
+    signature: '' // Giữ lại trong state để tránh lỗi type nhưng sẽ để trống
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showDatabase, setShowDatabase] = useState(false);
@@ -55,8 +54,8 @@ const App: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.reflection || !formData.signature) {
-      alert("Em hãy điền đầy đủ thông tin và ký tên nhé! ✨");
+    if (!formData.name || !formData.reflection) {
+      alert("Em hãy điền đầy đủ thông tin nhé! ✨");
       return;
     }
 
@@ -124,7 +123,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#fdfbf7] text-stone-800 pb-20">
       <header className="pt-12 pb-8 px-6 text-center max-w-2xl mx-auto">
-        <h1 className="text-4xl font-bold text-stone-700 handwriting mb-2">Lưu Bút Tâm Tình</h1>
+        <h1 className="text-4xl font-bold text-stone-700 handwriting mb-2">Tâm Sự Nhỏ</h1>
         <p className="text-stone-500 italic">“Nơi những kỷ niệm được gọi tên bằng sự chân thành”</p>
       </header>
 
@@ -137,7 +136,7 @@ const App: React.FC = () => {
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Nguyễn Văn A..."
+                placeholder="Chiến Thần Bóng Đêm, Minh Quân..."
                 className="w-full bg-white/80 border-b-2 border-stone-200 focus:border-orange-200 focus:outline-none px-2 py-2 transition-all placeholder:text-stone-300"
               />
             </div>
@@ -147,7 +146,7 @@ const App: React.FC = () => {
                 type="text"
                 value={formData.className}
                 onChange={(e) => setFormData({ ...formData, className: e.target.value })}
-                placeholder="12A1..."
+                placeholder="Điền theo lớp ở trung tâm nhaa"
                 className="w-full bg-white/80 border-b-2 border-stone-200 focus:border-orange-200 focus:outline-none px-2 py-2 transition-all placeholder:text-stone-300"
               />
             </div>
@@ -176,22 +175,14 @@ const App: React.FC = () => {
               rows={3}
               value={formData.improvement}
               onChange={(e) => setFormData({ ...formData, improvement: e.target.value })}
-              placeholder="Em viết thật lòng nhé, để thầy trở nên tốt hơn mỗi ngày."
+              placeholder="Viết thiệt lòng để thầy còn rút kinh nghiệm nhaaaa"
               className="w-full bg-white/80 border border-stone-200 rounded-xl focus:border-orange-200 focus:ring-0 focus:outline-none p-4 transition-all placeholder:text-stone-300 text-sm"
             />
           </div>
 
-          <div className="space-y-4 pt-4">
-             <label className="block text-sm font-medium text-stone-600 ml-1">Phần đặc biệt – Ký tên minh chứng</label>
-             <SignaturePad 
-               onSave={(data) => setFormData(prev => ({ ...prev, signature: data }))}
-               onClear={() => setFormData(prev => ({ ...prev, signature: '' }))}
-             />
-          </div>
-
           <button
             type="submit"
-            className="w-full py-4 bg-orange-100 hover:bg-orange-200 text-orange-800 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 group"
+            className="w-full py-4 bg-orange-100 hover:bg-orange-200 text-orange-800 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 group mt-4"
           >
             Gửi lời nhắn
             <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -266,9 +257,7 @@ const App: React.FC = () => {
                         </div>
                       )}
                       <div className="flex flex-col items-end pt-2 border-t border-stone-50 mt-4">
-                        <img src={msg.signature} alt="Signature" className="h-12 object-contain grayscale opacity-80" />
-                        <div className="h-[1px] w-32 bg-stone-200 mt-1" />
-                        <span className="text-[10px] text-stone-400 mt-1 italic">Xác nhận bởi {msg.name}</span>
+                        <span className="text-[10px] text-stone-400 mt-1 italic">— Gửi từ {msg.name}</span>
                       </div>
                     </div>
                   </div>
