@@ -183,7 +183,7 @@ const App: React.FC = () => {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Bóng đêm, Minh Quân"
+                placeholder="Sigma Boy, Minh Quân..."
                 className="w-full bg-white/80 border-b-2 border-stone-200 focus:border-orange-200 focus:outline-none px-2 py-2 transition-all placeholder:text-stone-300"
               />
             </div>
@@ -193,7 +193,7 @@ const App: React.FC = () => {
                 type="text"
                 value={formData.className}
                 onChange={(e) => setFormData({ ...formData, className: e.target.value })}
-                placeholder="điền lớp ở trung tâm nhaa"
+                placeholder="PET, Talent 9, IELTS..."
                 className="w-full bg-white/80 border-b-2 border-stone-200 focus:border-orange-200 focus:outline-none px-2 py-2 transition-all placeholder:text-stone-300"
               />
             </div>
