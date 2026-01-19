@@ -3,6 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { ScrapbookMessage } from './types';
 import { Heart, BookOpen, PenTool, Sparkles, ChevronDown, ChevronUp, Trash2, Wand2, Send, Loader2 } from 'lucide-react';
 
+// Khai báo kiểu cho window.emailjs để tránh lỗi TypeScript
+declare global {
+  interface Window {
+    emailjs: any;
+  }
+}
+
 const App: React.FC = () => {
   const [messages, setMessages] = useState<ScrapbookMessage[]>([]);
   const [formData, setFormData] = useState({
@@ -19,6 +26,12 @@ const App: React.FC = () => {
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
   useEffect(() => {
+    // Khởi tạo EmailJS với Public Key của bạn
+    // Thay 'YOUR_PUBLIC_KEY' bằng key từ Dashboard EmailJS của bạn
+    if (window.emailjs) {
+      window.emailjs.init("YOUR_PUBLIC_KEY"); 
+    }
+
     const saved = localStorage.getItem('scrapbook_messages');
     if (saved) {
       setMessages(JSON.parse(saved));
@@ -29,20 +42,30 @@ const App: React.FC = () => {
     localStorage.setItem('scrapbook_messages', JSON.stringify(newMessages));
   };
 
-  // Hàm gửi email thông qua một API route hoặc dịch vụ bên thứ 3
-  // Ở đây chúng ta sẽ giả lập việc gửi thông qua API route của ứng dụng
   const sendToTeacher = async (message: ScrapbookMessage) => {
     try {
-      // Lưu ý: Trong thực tế bạn có thể dùng EmailJS hoặc gửi về một Google Sheet
-      // Đây là ví dụ gọi về backend để xử lý gửi đi
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(message),
-      });
-      return response.ok;
+      if (!window.emailjs) return false;
+
+      // Cấu hình các tham số khớp với Template trong EmailJS của bạn
+      const templateParams = {
+        to_email: 'mquan1997td@gmail.com',
+        from_name: message.name,
+        class_name: message.className,
+        message: message.reflection,
+        improvement: message.improvement,
+        created_at: message.createdAt
+      };
+
+      // Thay 'YOUR_SERVICE_ID' và 'YOUR_TEMPLATE_ID'
+      const response = await window.emailjs.send(
+        'YOUR_SERVICE_ID', 
+        'YOUR_TEMPLATE_ID', 
+        templateParams
+      );
+
+      return response.status === 200;
     } catch (error) {
-      console.error("Lỗi gửi dữ liệu:", error);
+      console.error("Lỗi gửi EmailJS:", error);
       return false;
     }
   };
@@ -68,23 +91,26 @@ const App: React.FC = () => {
       })
     };
 
-    // Gửi dữ liệu đi (giả lập gửi về email/sheet cho giáo viên)
-    await sendToTeacher(newMessage);
-
-    const updatedMessages = [newMessage, ...messages];
-    setMessages(updatedMessages);
-    saveToLocalStorage(updatedMessages);
+    const success = await sendToTeacher(newMessage);
+    
+    if (success) {
+      const updatedMessages = [newMessage, ...messages];
+      setMessages(updatedMessages);
+      saveToLocalStorage(updatedMessages);
+      setIsSubmitted(true);
+      
+      setFormData({
+        name: '',
+        className: '',
+        reflection: '',
+        improvement: '',
+        signature: ''
+      });
+    } else {
+      alert("Có lỗi xảy ra khi gửi lời nhắn. Thầy chưa nhận được, em hãy thử lại nhé!");
+    }
     
     setIsSending(false);
-    setIsSubmitted(true);
-    
-    setFormData({
-      name: '',
-      className: '',
-      reflection: '',
-      improvement: '',
-      signature: ''
-    });
   };
 
   const generateAISummary = async () => {
@@ -129,7 +155,7 @@ const App: React.FC = () => {
             Cảm ơn em vì đã để lại những lời thương mến 🌱
           </h2>
           <p className="text-stone-500 leading-relaxed">
-            Lời nhắn của em đã được gửi an toàn đến thầy rồi nhé. Chúc em luôn vững bước!
+            Lời nhắn của em đã được gửi an toàn đến hòm thư mquan1997td@gmail.com của thầy rồi nhé.
           </p>
           <button
             onClick={() => setIsSubmitted(false)}
@@ -212,7 +238,7 @@ const App: React.FC = () => {
             {isSending ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Đang gửi về cho thầy...
+                Đang gửi thư cho thầy...
               </>
             ) : (
               <>
@@ -224,7 +250,6 @@ const App: React.FC = () => {
         </form>
       </main>
 
-      {/* Phần xem dữ liệu - Thầy có thể mở trên máy mình để xem các lời nhắn đã lưu */}
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-4xl px-4 z-50">
         <div className="bg-white/95 backdrop-blur-md border border-stone-200 rounded-2xl shadow-xl overflow-hidden transition-all duration-300">
           <button
@@ -258,7 +283,7 @@ const App: React.FC = () => {
 
               {messages.length === 0 ? (
                 <div className="text-center py-12 px-4">
-                  <p className="text-stone-400 italic">Chưa có lời nhắn nào được ghi nhận trên thiết bị này.</p>
+                  <p className="text-stone-400 italic">Lời nhắn sẽ lưu tại đây sau khi gửi thành công.</p>
                 </div>
               ) : (
                 messages.map((msg) => (
