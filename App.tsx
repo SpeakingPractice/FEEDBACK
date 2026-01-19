@@ -3,7 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { ScrapbookMessage } from './types';
 import { Heart, BookOpen, PenTool, Sparkles, ChevronDown, ChevronUp, Trash2, Wand2, Send, Loader2 } from 'lucide-react';
 
-// Khai báo kiểu cho window.emailjs để tránh lỗi TypeScript
+/**
+ * CẤU HÌNH EMAILJS ĐÃ ĐƯỢC CẬP NHẬT CHÍNH XÁC
+ */
+const EMAILJS_CONFIG = {
+  PUBLIC_KEY: 'NgOzSYY1suxM67NmO',
+  SERVICE_ID: 'service_fyf789u',
+  TEMPLATE_ID: 'template_qbey9ab'
+};
+
 declare global {
   interface Window {
     emailjs: any;
@@ -26,10 +34,9 @@ const App: React.FC = () => {
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
   useEffect(() => {
-    // Khởi tạo EmailJS với Public Key của bạn
-    // Thay 'YOUR_PUBLIC_KEY' bằng key từ Dashboard EmailJS của bạn
+    // Khởi tạo EmailJS với Public Key đã cung cấp
     if (window.emailjs) {
-      window.emailjs.init("YOUR_PUBLIC_KEY"); 
+      window.emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
     }
 
     const saved = localStorage.getItem('scrapbook_messages');
@@ -46,20 +53,19 @@ const App: React.FC = () => {
     try {
       if (!window.emailjs) return false;
 
-      // Cấu hình các tham số khớp với Template trong EmailJS của bạn
+      // Đảm bảo các biến này trùng khớp với các thẻ {{}} trong Email Template của bạn
       const templateParams = {
-        to_email: 'mquan1997td@gmail.com',
         from_name: message.name,
         class_name: message.className,
         message: message.reflection,
         improvement: message.improvement,
-        created_at: message.createdAt
+        created_at: message.createdAt,
+        to_email: 'mquan1997td@gmail.com'
       };
 
-      // Thay 'YOUR_SERVICE_ID' và 'YOUR_TEMPLATE_ID'
       const response = await window.emailjs.send(
-        'YOUR_SERVICE_ID', 
-        'YOUR_TEMPLATE_ID', 
+        EMAILJS_CONFIG.SERVICE_ID,
+        EMAILJS_CONFIG.TEMPLATE_ID,
         templateParams
       );
 
@@ -98,16 +104,9 @@ const App: React.FC = () => {
       setMessages(updatedMessages);
       saveToLocalStorage(updatedMessages);
       setIsSubmitted(true);
-      
-      setFormData({
-        name: '',
-        className: '',
-        reflection: '',
-        improvement: '',
-        signature: ''
-      });
+      setFormData({ name: '', className: '', reflection: '', improvement: '', signature: '' });
     } else {
-      alert("Có lỗi xảy ra khi gửi lời nhắn. Thầy chưa nhận được, em hãy thử lại nhé!");
+      alert("Hệ thống gặp chút lỗi nhỏ khi gửi thư. Thầy vui lòng kiểm tra lại trạng thái tài khoản EmailJS (đã bật Service và Template chưa nhé)!");
     }
     
     setIsSending(false);
@@ -122,11 +121,8 @@ const App: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages }),
       });
-      
       const data = await response.json();
-      if (data.text) {
-        setAiSummary(data.text);
-      }
+      if (data.text) setAiSummary(data.text);
     } catch (error) {
       setAiSummary("Hãy tiếp tục lắng nghe những trái tim nhỏ bé này nhé!");
     } finally {
@@ -155,7 +151,7 @@ const App: React.FC = () => {
             Cảm ơn em vì đã để lại những lời thương mến 🌱
           </h2>
           <p className="text-stone-500 leading-relaxed">
-            Lời nhắn của em đã được gửi an toàn đến hòm thư mquan1997td@gmail.com của thầy rồi nhé.
+            Lời nhắn của em đã được gửi an toàn đến thầy (mquan1997td@gmail.com) rồi nhé.
           </p>
           <button
             onClick={() => setIsSubmitted(false)}
@@ -185,7 +181,7 @@ const App: React.FC = () => {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Chiến Thần Bóng Đêm, Minh Quân..."
+                placeholder="Ví dụ: Minh Quân..."
                 className="w-full bg-white/80 border-b-2 border-stone-200 focus:border-orange-200 focus:outline-none px-2 py-2 transition-all placeholder:text-stone-300"
               />
             </div>
@@ -195,7 +191,7 @@ const App: React.FC = () => {
                 type="text"
                 value={formData.className}
                 onChange={(e) => setFormData({ ...formData, className: e.target.value })}
-                placeholder="Điền theo lớp ở trung tâm nhaa"
+                placeholder="Lớp của em..."
                 className="w-full bg-white/80 border-b-2 border-stone-200 focus:border-orange-200 focus:outline-none px-2 py-2 transition-all placeholder:text-stone-300"
               />
             </div>
@@ -211,7 +207,7 @@ const App: React.FC = () => {
               required
               value={formData.reflection}
               onChange={(e) => setFormData({ ...formData, reflection: e.target.value })}
-              placeholder="Những điều em nhớ nhất, vui buồn, khó khăn..."
+              placeholder="Những điều em muốn nhắn nhủ..."
               className="w-full bg-white/80 border border-stone-200 rounded-xl focus:border-orange-200 focus:ring-0 focus:outline-none p-4 transition-all placeholder:text-stone-300 leading-relaxed text-sm"
             />
           </div>
@@ -225,7 +221,7 @@ const App: React.FC = () => {
               rows={3}
               value={formData.improvement}
               onChange={(e) => setFormData({ ...formData, improvement: e.target.value })}
-              placeholder="Viết thiệt lòng để thầy còn rút kinh nghiệm nhaaaa"
+              placeholder="Góp ý chân thành để thầy dạy tốt hơn..."
               className="w-full bg-white/80 border border-stone-200 rounded-xl focus:border-orange-200 focus:ring-0 focus:outline-none p-4 transition-all placeholder:text-stone-300 text-sm"
             />
           </div>
@@ -250,6 +246,7 @@ const App: React.FC = () => {
         </form>
       </main>
 
+      {/* Database View for Teacher */}
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-4xl px-4 z-50">
         <div className="bg-white/95 backdrop-blur-md border border-stone-200 rounded-2xl shadow-xl overflow-hidden transition-all duration-300">
           <button
@@ -260,7 +257,7 @@ const App: React.FC = () => {
             className="w-full p-4 flex items-center justify-between text-stone-500 hover:text-stone-800 transition-colors"
           >
             <span className="text-xs font-semibold tracking-widest uppercase flex items-center gap-2 text-orange-600">
-              <Heart className="w-3 h-3 fill-current" /> những lời tâm sự nhỏ ({messages.length})
+              <Heart className="w-3 h-3 fill-current" /> lưu bút trên máy này ({messages.length})
             </span>
             {showDatabase ? <ChevronDown /> : <ChevronUp />}
           </button>
@@ -283,14 +280,14 @@ const App: React.FC = () => {
 
               {messages.length === 0 ? (
                 <div className="text-center py-12 px-4">
-                  <p className="text-stone-400 italic">Lời nhắn sẽ lưu tại đây sau khi gửi thành công.</p>
+                  <p className="text-stone-400 italic">Lời nhắn sẽ hiển thị tại đây sau khi gửi thành công.</p>
                 </div>
               ) : (
                 messages.map((msg) => (
                   <div key={msg.id} className="bg-white border border-stone-100 p-6 rounded-xl shadow-sm relative group animate-fadeIn">
                     <button 
                       onClick={(e) => { e.stopPropagation(); deleteMessage(msg.id); }}
-                      className="absolute top-4 right-4 p-2 text-stone-300 hover:text-red-500 rounded-lg opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                      className="absolute top-4 right-4 p-2 text-stone-300 hover:text-red-500 rounded-lg opacity-100"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
