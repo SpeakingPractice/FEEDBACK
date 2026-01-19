@@ -33,7 +33,6 @@ const App: React.FC = () => {
     if (messages.length === 0) return;
     setIsGeneratingSummary(true);
     try {
-      // Gọi đến Serverless Function đã tạo thay vì gọi SDK trực tiếp
       const response = await fetch('/api/gemini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -92,7 +91,7 @@ const App: React.FC = () => {
       const filtered = messages.filter(m => m.id !== id);
       setMessages(filtered);
       saveToLocalStorage(filtered);
-      setAiSummary(null); // Reset summary to regenerate on next open
+      setAiSummary(null);
     }
   };
 
@@ -133,7 +132,7 @@ const App: React.FC = () => {
         <form onSubmit={handleSubmit} className="bg-white/60 backdrop-blur-sm border border-stone-100 rounded-2xl p-8 shadow-sm space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-stone-600 ml-1">Tên em là</label>
+              <label className="block text-sm font-medium text-stone-600 ml-1">Biệt danh hoặc tên em là</label>
               <input
                 type="text"
                 value={formData.name}
@@ -143,7 +142,7 @@ const App: React.FC = () => {
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-stone-600 ml-1">Lớp của em là lớp</label>
+              <label className="block text-sm font-medium text-stone-600 ml-1">Em là thành viên lớp</label>
               <input
                 type="text"
                 value={formData.className}
@@ -171,13 +170,13 @@ const App: React.FC = () => {
           <div className="space-y-2">
             <label className="block text-sm font-medium text-stone-600 ml-1 flex items-center gap-2">
               <PenTool className="w-4 h-4 text-blue-300" />
-              Những điều em mong thầy/cô có thể cải thiện
+              Những điều em mong thầy có thể cải thiện
             </label>
             <textarea
               rows={3}
               value={formData.improvement}
               onChange={(e) => setFormData({ ...formData, improvement: e.target.value })}
-              placeholder="Em viết thật lòng nhé, để thầy/cô trở nên tốt hơn mỗi ngày."
+              placeholder="Em viết thật lòng nhé, để thầy trở nên tốt hơn mỗi ngày."
               className="w-full bg-white/80 border border-stone-200 rounded-xl focus:border-orange-200 focus:ring-0 focus:outline-none p-4 transition-all placeholder:text-stone-300 text-sm"
             />
           </div>
