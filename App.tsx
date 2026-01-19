@@ -170,7 +170,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-[#fdfbf7] text-stone-800 pb-20">
       <header className="pt-12 pb-8 px-6 text-center max-w-2xl mx-auto">
         <h1 className="text-4xl font-bold text-stone-700 handwriting mb-2">Tâm Sự Nhỏ</h1>
-        <p className="text-stone-500 italic">“Nơi những kỷ niệm được gọi tên bằng sự chân thành”</p>
+        <p className="text-stone-500 text-sm italic">“Nơi những kỷ niệm được gọi tên bằng sự chân thành”</p>
       </header>
 
       <main className="max-w-2xl mx-auto px-6 mb-16">
