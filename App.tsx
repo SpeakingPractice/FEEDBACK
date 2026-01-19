@@ -56,7 +56,6 @@ const App: React.FC = () => {
         return { success: false, error: "SDK not loaded" };
       }
 
-      // Đảm bảo các biến này trùng khớp chính xác với Template trên Dashboard EmailJS
       const templateParams = {
         from_name: message.name || 'Học sinh ẩn danh',
         class_name: message.className || 'Không rõ lớp',
@@ -109,7 +108,6 @@ const App: React.FC = () => {
       setIsSubmitted(true);
       setFormData({ name: '', className: '', reflection: '', improvement: '', signature: '' });
     } else {
-      // Hiển thị lỗi chi tiết để thầy dễ xử lý
       alert(`Gửi thư thất bại.\nLỗi: ${result.error}\n\nThầy hãy kiểm tra xem Service ID (${EMAILJS_CONFIG.SERVICE_ID}) đã được bật trong mục "Email Services" chưa nhé!`);
     }
     
@@ -185,7 +183,7 @@ const App: React.FC = () => {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Ví dụ: Minh Quân..."
+                placeholder="Bóng đêm, Minh Quân"
                 className="w-full bg-white/80 border-b-2 border-stone-200 focus:border-orange-200 focus:outline-none px-2 py-2 transition-all placeholder:text-stone-300"
               />
             </div>
@@ -195,7 +193,7 @@ const App: React.FC = () => {
                 type="text"
                 value={formData.className}
                 onChange={(e) => setFormData({ ...formData, className: e.target.value })}
-                placeholder="Lớp của em..."
+                placeholder="điền lớp ở trung tâm nhaa"
                 className="w-full bg-white/80 border-b-2 border-stone-200 focus:border-orange-200 focus:outline-none px-2 py-2 transition-all placeholder:text-stone-300"
               />
             </div>
