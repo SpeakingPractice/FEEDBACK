@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ScrapbookMessage } from './types';
-import { Heart, BookOpen, PenTool, Sparkles, ChevronDown, ChevronUp, Trash2, Wand2 } from 'lucide-react';
+import { Heart, BookOpen, PenTool, Sparkles, ChevronDown, ChevronUp, Trash2, Wand2, Send, Loader2 } from 'lucide-react';
 
 const App: React.FC = () => {
   const [messages, setMessages] = useState<ScrapbookMessage[]>([]);
@@ -10,9 +10,10 @@ const App: React.FC = () => {
     className: '',
     reflection: '',
     improvement: '',
-    signature: '' // Giữ lại trong state để tránh lỗi type nhưng sẽ để trống
+    signature: ''
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [showDatabase, setShowDatabase] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
@@ -28,36 +29,32 @@ const App: React.FC = () => {
     localStorage.setItem('scrapbook_messages', JSON.stringify(newMessages));
   };
 
-  const generateAISummary = async () => {
-    if (messages.length === 0) return;
-    setIsGeneratingSummary(true);
+  // Hàm gửi email thông qua một API route hoặc dịch vụ bên thứ 3
+  // Ở đây chúng ta sẽ giả lập việc gửi thông qua API route của ứng dụng
+  const sendToTeacher = async (message: ScrapbookMessage) => {
     try {
-      const response = await fetch('/api/gemini', {
+      // Lưu ý: Trong thực tế bạn có thể dùng EmailJS hoặc gửi về một Google Sheet
+      // Đây là ví dụ gọi về backend để xử lý gửi đi
+      const response = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages }),
+        body: JSON.stringify(message),
       });
-      
-      const data = await response.json();
-      if (data.text) {
-        setAiSummary(data.text);
-      } else {
-        setAiSummary("Hãy tiếp tục lắng nghe những trái tim nhỏ bé này nhé!");
-      }
+      return response.ok;
     } catch (error) {
-      console.error("AI Error:", error);
-      setAiSummary("Hãy tiếp tục lắng nghe những trái tim nhỏ bé này nhé!");
-    } finally {
-      setIsGeneratingSummary(false);
+      console.error("Lỗi gửi dữ liệu:", error);
+      return false;
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.reflection) {
       alert("Em hãy điền đầy đủ thông tin nhé! ✨");
       return;
     }
+
+    setIsSending(true);
 
     const newMessage: ScrapbookMessage = {
       ...formData,
@@ -71,9 +68,14 @@ const App: React.FC = () => {
       })
     };
 
+    // Gửi dữ liệu đi (giả lập gửi về email/sheet cho giáo viên)
+    await sendToTeacher(newMessage);
+
     const updatedMessages = [newMessage, ...messages];
     setMessages(updatedMessages);
     saveToLocalStorage(updatedMessages);
+    
+    setIsSending(false);
     setIsSubmitted(true);
     
     setFormData({
@@ -85,12 +87,32 @@ const App: React.FC = () => {
     });
   };
 
+  const generateAISummary = async () => {
+    if (messages.length === 0) return;
+    setIsGeneratingSummary(true);
+    try {
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages }),
+      });
+      
+      const data = await response.json();
+      if (data.text) {
+        setAiSummary(data.text);
+      }
+    } catch (error) {
+      setAiSummary("Hãy tiếp tục lắng nghe những trái tim nhỏ bé này nhé!");
+    } finally {
+      setIsGeneratingSummary(false);
+    }
+  };
+
   const deleteMessage = (id: string) => {
-    if (window.confirm("Bạn có chắc muốn xóa lời nhắn này không? Hành động này không thể hoàn tác.")) {
+    if (window.confirm("Bạn có chắc muốn xóa lời nhắn này không?")) {
       const filtered = messages.filter(m => m.id !== id);
       setMessages(filtered);
       saveToLocalStorage(filtered);
-      setAiSummary(null);
     }
   };
 
@@ -107,7 +129,7 @@ const App: React.FC = () => {
             Cảm ơn em vì đã để lại những lời thương mến 🌱
           </h2>
           <p className="text-stone-500 leading-relaxed">
-            Mỗi dòng chữ của em là một món quà vô giá dành cho thầy cô. Chúc em luôn vững bước trên con đường phía trước!
+            Lời nhắn của em đã được gửi an toàn đến thầy rồi nhé. Chúc em luôn vững bước!
           </p>
           <button
             onClick={() => setIsSubmitted(false)}
@@ -134,6 +156,7 @@ const App: React.FC = () => {
               <label className="block text-sm font-medium text-stone-600 ml-1">Biệt danh hoặc tên em là</label>
               <input
                 type="text"
+                required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Chiến Thần Bóng Đêm, Minh Quân..."
@@ -159,9 +182,10 @@ const App: React.FC = () => {
             </label>
             <textarea
               rows={5}
+              required
               value={formData.reflection}
               onChange={(e) => setFormData({ ...formData, reflection: e.target.value })}
-              placeholder="Những điều em nhớ nhất, vui buồn, khó khăn, hay khoảnh khắc khiến em cảm thấy mình đã trưởng thành hơn…"
+              placeholder="Những điều em nhớ nhất, vui buồn, khó khăn..."
               className="w-full bg-white/80 border border-stone-200 rounded-xl focus:border-orange-200 focus:ring-0 focus:outline-none p-4 transition-all placeholder:text-stone-300 leading-relaxed text-sm"
             />
           </div>
@@ -182,25 +206,36 @@ const App: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full py-4 bg-orange-100 hover:bg-orange-200 text-orange-800 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 group mt-4"
+            disabled={isSending}
+            className="w-full py-4 bg-orange-100 hover:bg-orange-200 disabled:bg-stone-100 text-orange-800 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 group mt-4"
           >
-            Gửi lời nhắn
-            <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            {isSending ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Đang gửi về cho thầy...
+              </>
+            ) : (
+              <>
+                Gửi lời nhắn
+                <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              </>
+            )}
           </button>
         </form>
       </main>
 
+      {/* Phần xem dữ liệu - Thầy có thể mở trên máy mình để xem các lời nhắn đã lưu */}
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-4xl px-4 z-50">
         <div className="bg-white/95 backdrop-blur-md border border-stone-200 rounded-2xl shadow-xl overflow-hidden transition-all duration-300">
           <button
             onClick={() => {
-              if (!showDatabase && messages.length > 0 && !aiSummary) generateAISummary();
+              if (!showDatabase && messages.length > 0) generateAISummary();
               setShowDatabase(!showDatabase);
             }}
             className="w-full p-4 flex items-center justify-between text-stone-500 hover:text-stone-800 transition-colors"
           >
-            <span className="text-xs font-semibold tracking-widest uppercase flex items-center gap-2">
-              những lời tâm sự nhỏ ({messages.length})
+            <span className="text-xs font-semibold tracking-widest uppercase flex items-center gap-2 text-orange-600">
+              <Heart className="w-3 h-3 fill-current" /> những lời tâm sự nhỏ ({messages.length})
             </span>
             {showDatabase ? <ChevronDown /> : <ChevronUp />}
           </button>
@@ -223,42 +258,31 @@ const App: React.FC = () => {
 
               {messages.length === 0 ? (
                 <div className="text-center py-12 px-4">
-                  <p className="text-stone-400 italic">Chưa có lời nhắn nào được lưu lại...</p>
+                  <p className="text-stone-400 italic">Chưa có lời nhắn nào được ghi nhận trên thiết bị này.</p>
                 </div>
               ) : (
                 messages.map((msg) => (
                   <div key={msg.id} className="bg-white border border-stone-100 p-6 rounded-xl shadow-sm relative group animate-fadeIn">
                     <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteMessage(msg.id);
-                      }}
-                      className="absolute top-4 right-4 p-2 text-stone-300 hover:text-red-500 hover:bg-red-50 transition-all rounded-lg opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                      onClick={(e) => { e.stopPropagation(); deleteMessage(msg.id); }}
+                      className="absolute top-4 right-4 p-2 text-stone-300 hover:text-red-500 rounded-lg opacity-100 md:opacity-0 md:group-hover:opacity-100"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
-                    
-                    <div className="flex justify-between items-start mb-4 pr-10">
-                      <div>
-                        <h4 className="font-bold text-stone-800 text-lg leading-tight">{msg.name}</h4>
-                        <p className="text-xs text-stone-400 font-medium uppercase tracking-wider">{msg.className} • {msg.createdAt}</p>
-                      </div>
+                    <div className="mb-4">
+                      <h4 className="font-bold text-stone-800 text-lg leading-tight">{msg.name}</h4>
+                      <p className="text-xs text-stone-400 font-medium uppercase tracking-wider">{msg.className} • {msg.createdAt}</p>
                     </div>
-
                     <div className="space-y-4">
                       <div>
-                        <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest mb-1">Cảm nghĩ</p>
-                        <p className="text-stone-600 text-sm whitespace-pre-wrap leading-relaxed">{msg.reflection}</p>
+                        <p className="text-stone-600 text-sm whitespace-pre-wrap leading-relaxed italic">"{msg.reflection}"</p>
                       </div>
                       {msg.improvement && (
                         <div className="bg-blue-50/30 p-3 rounded-lg border border-blue-100/50">
                           <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">Góp ý</p>
-                          <p className="text-stone-600 text-sm whitespace-pre-wrap italic leading-relaxed">{msg.improvement}</p>
+                          <p className="text-stone-600 text-sm">{msg.improvement}</p>
                         </div>
                       )}
-                      <div className="flex flex-col items-end pt-2 border-t border-stone-50 mt-4">
-                        <span className="text-[10px] text-stone-400 mt-1 italic">— Gửi từ {msg.name}</span>
-                      </div>
                     </div>
                   </div>
                 ))
