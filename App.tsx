@@ -200,7 +200,7 @@ const App: React.FC = () => {
             className="w-full p-4 flex items-center justify-between text-stone-500 hover:text-stone-800 transition-colors"
           >
             <span className="text-xs font-semibold tracking-widest uppercase flex items-center gap-2">
-              Dành riêng cho Giáo viên ({messages.length})
+              những lời tâm sự nhỏ ({messages.length})
             </span>
             {showDatabase ? <ChevronDown /> : <ChevronUp />}
           </button>
