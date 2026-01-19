@@ -34,7 +34,7 @@ const App: React.FC = () => {
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
   useEffect(() => {
-    // Khởi tạo EmailJS với Public Key đã cung cấp
+    // Khởi tạo EmailJS
     if (window.emailjs) {
       window.emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
     }
@@ -51,17 +51,22 @@ const App: React.FC = () => {
 
   const sendToTeacher = async (message: ScrapbookMessage) => {
     try {
-      if (!window.emailjs) return false;
+      if (!window.emailjs) {
+        console.error("EmailJS SDK chưa được tải");
+        return false;
+      }
 
-      // Đảm bảo các biến này trùng khớp với các thẻ {{}} trong Email Template của bạn
+      // Các biến này CẦN phải có mặt trong Template của bạn trên EmailJS Dashboard
       const templateParams = {
-        from_name: message.name,
-        class_name: message.className,
+        from_name: message.name || 'Ẩn danh',
+        class_name: message.className || 'Không rõ lớp',
         message: message.reflection,
-        improvement: message.improvement,
+        improvement: message.improvement || 'Không có góp ý',
         created_at: message.createdAt,
         to_email: 'mquan1997td@gmail.com'
       };
+
+      console.log("Đang gửi với params:", templateParams);
 
       const response = await window.emailjs.send(
         EMAILJS_CONFIG.SERVICE_ID,
@@ -69,17 +74,22 @@ const App: React.FC = () => {
         templateParams
       );
 
+      console.log("Kết quả EmailJS:", response);
       return response.status === 200;
-    } catch (error) {
-      console.error("Lỗi gửi EmailJS:", error);
+    } catch (error: any) {
+      // In ra lỗi chi tiết để debug
+      console.error("Lỗi chi tiết từ EmailJS:", error);
+      if (error?.text) {
+        alert(`Lỗi từ EmailJS: ${error.text}\nThầy hãy kiểm tra xem Template có các biến {{from_name}}, {{class_name}}, {{message}} chưa nhé!`);
+      }
       return false;
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.reflection) {
-      alert("Em hãy điền đầy đủ thông tin nhé! ✨");
+    if (!formData.name.trim() || !formData.reflection.trim()) {
+      alert("Em hãy điền đầy đủ tên và cảm nghĩ nhé! ✨");
       return;
     }
 
@@ -106,7 +116,8 @@ const App: React.FC = () => {
       setIsSubmitted(true);
       setFormData({ name: '', className: '', reflection: '', improvement: '', signature: '' });
     } else {
-      alert("Hệ thống gặp chút lỗi nhỏ khi gửi thư. Thầy vui lòng kiểm tra lại trạng thái tài khoản EmailJS (đã bật Service và Template chưa nhé)!");
+      // Thông báo này sẽ hiện ra nếu success = false
+      alert("Gửi thư thất bại. Thầy hãy kiểm tra lại Service ID và Template ID trên EmailJS nhé!");
     }
     
     setIsSending(false);
@@ -151,7 +162,7 @@ const App: React.FC = () => {
             Cảm ơn em vì đã để lại những lời thương mến 🌱
           </h2>
           <p className="text-stone-500 leading-relaxed">
-            Lời nhắn của em đã được gửi an toàn đến thầy (mquan1997td@gmail.com) rồi nhé.
+            Lời nhắn của em đã được gửi an toàn đến thầy rồi nhé.
           </p>
           <button
             onClick={() => setIsSubmitted(false)}
