@@ -4,11 +4,11 @@ import { ScrapbookMessage } from './types';
 import { Heart, BookOpen, PenTool, Sparkles, ChevronDown, ChevronUp, Trash2, Wand2, Send, Loader2 } from 'lucide-react';
 
 /**
- * CẤU HÌNH EMAILJS ĐÃ ĐƯỢC CẬP NHẬT CHÍNH XÁC
+ * CẤU HÌNH EMAILJS ĐÃ ĐƯỢC CẬP NHẬT THEO YÊU CẦU MỚI
  */
 const EMAILJS_CONFIG = {
   PUBLIC_KEY: 'NgOzSYY1suxM67NmO',
-  SERVICE_ID: 'service_fyf789u',
+  SERVICE_ID: 'service_0oyne2g',
   TEMPLATE_ID: 'template_qbey9ab'
 };
 
@@ -53,12 +53,12 @@ const App: React.FC = () => {
     try {
       if (!window.emailjs) {
         console.error("EmailJS SDK chưa được tải");
-        return false;
+        return { success: false, error: "SDK not loaded" };
       }
 
-      // Các biến này CẦN phải có mặt trong Template của bạn trên EmailJS Dashboard
+      // Đảm bảo các biến này trùng khớp chính xác với Template trên Dashboard EmailJS
       const templateParams = {
-        from_name: message.name || 'Ẩn danh',
+        from_name: message.name || 'Học sinh ẩn danh',
         class_name: message.className || 'Không rõ lớp',
         message: message.reflection,
         improvement: message.improvement || 'Không có góp ý',
@@ -66,23 +66,16 @@ const App: React.FC = () => {
         to_email: 'mquan1997td@gmail.com'
       };
 
-      console.log("Đang gửi với params:", templateParams);
-
       const response = await window.emailjs.send(
         EMAILJS_CONFIG.SERVICE_ID,
         EMAILJS_CONFIG.TEMPLATE_ID,
         templateParams
       );
 
-      console.log("Kết quả EmailJS:", response);
-      return response.status === 200;
+      return { success: response.status === 200, error: null };
     } catch (error: any) {
-      // In ra lỗi chi tiết để debug
-      console.error("Lỗi chi tiết từ EmailJS:", error);
-      if (error?.text) {
-        alert(`Lỗi từ EmailJS: ${error.text}\nThầy hãy kiểm tra xem Template có các biến {{from_name}}, {{class_name}}, {{message}} chưa nhé!`);
-      }
-      return false;
+      console.error("Lỗi EmailJS:", error);
+      return { success: false, error: error?.text || JSON.stringify(error) };
     }
   };
 
@@ -107,17 +100,17 @@ const App: React.FC = () => {
       })
     };
 
-    const success = await sendToTeacher(newMessage);
+    const result = await sendToTeacher(newMessage);
     
-    if (success) {
+    if (result.success) {
       const updatedMessages = [newMessage, ...messages];
       setMessages(updatedMessages);
       saveToLocalStorage(updatedMessages);
       setIsSubmitted(true);
       setFormData({ name: '', className: '', reflection: '', improvement: '', signature: '' });
     } else {
-      // Thông báo này sẽ hiện ra nếu success = false
-      alert("Gửi thư thất bại. Thầy hãy kiểm tra lại Service ID và Template ID trên EmailJS nhé!");
+      // Hiển thị lỗi chi tiết để thầy dễ xử lý
+      alert(`Gửi thư thất bại.\nLỗi: ${result.error}\n\nThầy hãy kiểm tra xem Service ID (${EMAILJS_CONFIG.SERVICE_ID}) đã được bật trong mục "Email Services" chưa nhé!`);
     }
     
     setIsSending(false);
